@@ -1,0 +1,50 @@
+################################
+# Gradle
+################################
+.gradle/
+build/
+
+# Gradle Wrapper（必要）
+!gradle/wrapper/gradle-wrapper.jar
+
+################################
+# Eclipse / STS
+################################
+.project
+.classpath
+.settings/
+.factorypath
+.apt_generated
+.springBeans
+.sts4-cache/
+bin/
+
+################################
+# IntelliJ IDEA
+################################
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+################################
+# NetBeans
+################################
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+################################
+# VS Code
+################################
+.vscode/
+
+################################
+# OS / その他
+################################
+.DS_Store
+Thumbs.db
+*.log

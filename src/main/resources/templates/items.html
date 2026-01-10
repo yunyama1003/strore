@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Items</title>
+</head>
+<body>
+
+<h1>持ち物一覧</h1>
+
+<!-- 追加フォーム -->
+<form th:action="@{/items/view}" method="post">
+    <input type="text" name="name" placeholder="商品名" required>
+    <input type="number" name="quantity" min="0" required>
+    <button type="submit">追加</button>
+</form>
+
+<hr>
+
+<table border="1">
+    <tr>
+        <th>名前</th>
+        <th>数量</th>
+        <th>操作</th>
+    </tr>
+
+    <tr th:each="item : ${items}">
+        <td th:text="${item.name}"></td>
+        <td th:text="${item.quantity}"></td>
+        <td>
+            <!-- + -->
+            <form th:action="@{/items/{id}/change(id=${item.id})}" method="post" style="display:inline">
+                <input type="hidden" name="delta" value="1">
+                <button type="submit">＋</button>
+            </form>
+
+            <!-- - -->
+			<form th:action="@{/items/{id}/change(id=${item.id})}" method="post" style="display:inline">
+			    <input type="hidden" name="delta" value="-1">
+			    <button type="submit"
+			            th:disabled="${item.quantity == 0}">
+			        −
+			    </button>
+			</form>
+
+			<form th:action="@{/items/{id}/delete(id=${item.id})}"
+			      method="post"
+			      style="display:inline"
+			      onsubmit="return confirm('本当に削除しますか？');">
+			    <button type="submit">削除</button>
+			</form>
+        </td>
+    </tr>
+</table>
+
+</body>
+</html>

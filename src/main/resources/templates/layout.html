@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="日用品のストックを記録して、買い忘れを減らす。">
+    <title th:text="${title} + ' | くらしのストック'">くらしのストック</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <script th:src="@{/js/app.js}" defer></script>
+</head>
+<body>
+<header class="site-header" th:fragment="header"><div class="container header-inner">
+    <a class="brand" th:href="@{/}"><span class="brand-mark" aria-hidden="true">S</span>くらしのストック</a>
+    <span class="header-note">日用品の管理</span>
+</div></header>
+<footer class="site-footer container" th:fragment="footer"><span>くらしのストック</span><span>Ver.1</span></footer>
+</body>
+</html>

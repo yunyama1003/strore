@@ -1,140 +1,163 @@
-# Store Item Management App
+# くらしのストック（strore）Ver.1
 
-## 📌 概要
+既存のSpring Boot在庫アプリを、自宅の日用品管理向けに拡張しました。
+自宅のPCで起動し、PCまたは同じWi-Fiのスマホのブラウザから操作できます。
+外出先では購入リストをメモにコピーして使います。
 
-Spring Boot を用いて作成した、**シンプルな在庫（アイテム）管理アプリ**です。
+## できること
 
-* アイテム一覧表示
-* アイテム追加（HTMLフォームから POST）
-* 数量の増減（+ / − ボタン）
-* アイテム削除（確認ダイアログ付き）
+- 商品の登録・編集・削除（削除前に確認）
+- ストック数の＋1・−1（0〜9999個）
+- 最低ストック数、7種類のカテゴリ、メモの設定
+- 在庫状態の自動判定、購入リスト、カテゴリ絞り込み
+- 購入リストのテキストコピー（コピーが使えない端末では選択して手動コピー）
+- PC・スマホ向け画面
+- H2ファイルDBへの保存（アプリ再起動後も保持）
 
-バックエンド開発における **MVC構成・CRUD処理・画面連携** の理解を目的として作成しました。
+使用中の商品を含めるかは、自分の数え方で統一してください。
+例えば「未開封の予備だけを数え、購入時に＋、開封時に−」とすると簡単です。
+初期の商品データは空です。自分の日用品から登録してください。
 
----
-## 🖥 アプリ画面
+## 起動（Windows）
 
-### 一覧画面
+Java 25が必要です。Gradleは同梱のWrapperを使うので、別途インストール不要です。
+初回だけ依存ライブラリを取得するインターネット接続が必要です。
 
-![アイテム一覧画面](screenshots/items.png)
+1. このフォルダにある **start.batをダブルクリック**します。
+2. 起動ログに「Started StroreApplication」と表示されたら開きます。
+3. PCのブラウザ: **http://localhost:8081/**
+4. 終了する場合は起動したウィンドウでCtrl+Cを押します。
 
-* 登録済みアイテムを一覧表示
-* 数量の増減が可能（0 の場合は − ボタン無効）
-* 削除時は確認ダイアログを表示
+PowerShellから起動する場合:
 
----
-## 🛠 使用技術
-
-| 分類         | 技術           |
-| ---------- | ------------ |
-| 言語         | Java         |
-| フレームワーク    | Spring Boot  |
-| ビルドツール     | Gradle       |
-| テンプレートエンジン | Thymeleaf    |
-| IDE        | Eclipse（STS） |
-| バージョン管理    | Git / GitHub |
-
----
-
-## 📂 ディレクトリ構成
-
-```
-strore
- ├─ controller
- │   ├─ ItemController.java        // REST API 用
- │   └─ ItemViewController.java    // 画面表示用
- ├─ service
- │   └─ ItemService.java            // 業務ロジック
- ├─ repository
- │   └─ ItemRepository.java         // データ管理（Map使用）
- ├─ entity
- │   └─ Item.java                   // エンティティ
- ├─ dto
- │   ├─ ItemRequest.java
- │   └─ UpdateQuantityRequest.java
- └─ resources
-     └─ templates
-         └─ items.html               // 画面（Thymeleaf）
+```powershell
+cd path\to\strore
+.\gradlew.bat bootRun
 ```
 
----
+このパス以外へ移動した場合は、移動先のstroreフォルダで実行してください。
+データ保存場所を一定にするため、必ずプロジェクト直下から起動します。
+8081番ポートが使用中の場合は、二重起動していないか確認してください。
 
-## 🧱 設計の考え方（重要）
+GitHubから取得する場合（この改修をpushした後に利用可能）:
 
-### MVC アーキテクチャ
-
-| 層          | 役割                |
-| ---------- | ----------------- |
-| Controller | リクエスト受付・レスポンス制御   |
-| Service    | 業務ロジックを担当         |
-| Repository | データ管理（今回はDB未使用）   |
-| View       | Thymeleaf による画面表示 |
-
-画面用 Controller と API 用 Controller を分離し、
-**責務が混ざらない構成**を意識しています。
-
----
-
-## 💾 データ管理について
-
-本アプリでは **DBを使用せず、Map を用いた簡易リポジトリ**でデータ管理を行っています。
-
-```java
-private final Map<Long, Item> store = new HashMap<>();
-```
-
-* 学習目的のため、永続化は行っていません
-* 将来的に RDB（PostgreSQL 等）へ置き換え可能な構成です
-
----
-
-## 🖥 画面仕様
-
-### 一覧画面（/items/view）
-
-* 登録済みアイテムの一覧表示
-* 数量の + / − 操作
-
-  * 数量が 0 の場合は − ボタンを無効化
-* 削除ボタン押下時に確認ダイアログ表示
-
----
-
-## ⚙ 工夫した点
-
-* PRG パターン（Post → Redirect → Get）を採用し、二重送信防止
-* 数量が 0 の場合に UI 側で操作制御
-* Controller / Service の責務分離
-* GitHub 公開を前提とした .gitignore 設定
-
----
-
-## 🚀 今後の改善案
-
-* DB（PostgreSQL）導入
-* Validation（入力チェック）の追加
-* 例外ハンドリングの共通化
-* Spring Security による認証機能
-
----
-
-## ▶ 起動方法
-
-```bash
-git clone https://github.com/yourname/your-repository.git
+```powershell
+git clone https://github.com/yunyama1003/strore.git
 cd strore
-./gradlew bootRun
+.\gradlew.bat bootRun
 ```
 
-ブラウザで以下にアクセス
+## 自宅のスマホから使う
 
+1. PCとスマホを同じ自宅Wi-Fiにつなぎます。
+2. PCでアプリを起動したままにします（スリープ中はアクセスできません）。
+3. PCで `ipconfig` を実行し、Wi-Fiの「IPv4 アドレス」を確認します。
+4. スマホで `http://＜PCのIPv4アドレス＞:8081/` を開きます。
+   例: PCのIPが192.168.1.10なら `http://192.168.1.10:8081/` です。
+5. Windowsのファイアウォールで通信許可を求められた場合は、自宅のプライベートネットワークに限定して許可してください。
+
+接続できない場合は、同じWi-Fiか、PCが起動中か、Windowsの許可設定を確認してください。
+ゲストWi-Fiでは端末同士の通信が禁止されている場合があります。
+スマホのlocalhostはスマホ自身を指すので、PCのIPを使ってください。
+ルーターのポート開放は不要です。ログインなしの自宅専用版のため、インターネットへ公開しないでください。
+
+## 買い物中に見る
+
+購入リストで「リストをコピー」を押し、スマホのメモアプリなどに貼り付けます。
+HTTP接続のスマホでは自動コピーが使えないことがあります。
+その場合は展開されたテキストを端末のコピー操作でコピーできます。
+コピーしたリストは出力時点の内容です。メモの変更や購入チェックはアプリに反映されません。
+帰宅後に購入した分を＋してください。
+
+## 在庫ルール
+
+| 現在数 | 表示 | 購入リスト |
+|---|---|---|
+| 0 | 在庫切れ | 対象 |
+| 1以上、最低ストック数以下 | 残りわずか | 対象 |
+| 最低ストック数より多い | 在庫あり | 対象外 |
+
+最低ストック数が0でも、現在数0の商品は購入対象です。
+一覧は在庫切れ → 残りわずか → 在庫あり、同じ状態では登録順に表示します。
+カテゴリ絞り込み中の＋−・削除は、そのカテゴリ表示を維持します。
+購入リストで数量が最低数を超えると、その商品はリストから外れます。
+
+## 保存とバックアップ
+
+- DB: H2（ファイル方式）。PostgreSQLのインストールは不要です。
+- 実データ: プロジェクト直下の `data/strore.mv.db`
+- DB初期化: `src/main/resources/schema.sql` でテーブルがない場合に作成
+- 起動時は既存データを消しません。JPAはスキーマの一致を検証します。
+- バックアップは **アプリを停止してからdataフォルダ全体をコピー**します。
+- 復元はアプリ停止中にdataフォルダをバックアップで戻します。現在のデータは置き換わります。
+- dataフォルダは.gitignoreに含まれ、GitHubに個人の在庫データを登録しません。
+- 自動テストは専用のメモリDBを使い、普段のデータを変更しません。
+
+## テーブル設計
+
+`items` の1テーブルです。在庫状態・購入リストは現在数と最低数から計算し、重複保存しません。
+
+| 列 | 型 | 内容 |
+|---|---|---|
+| id | BIGINT / IDENTITY | 自動採番の主キー |
+| name | VARCHAR(100) | 必須の商品名 |
+| category | VARCHAR(30) | 固定7カテゴリのコード |
+| quantity | INTEGER | 現在数、0〜9999 |
+| minimum_quantity | INTEGER | 最低数、0〜9999 |
+| note | VARCHAR(1000) | メモ、空文字可 |
+| created_at | TIMESTAMP WITH TIME ZONE | 作成日時 |
+| updated_at | TIMESTAMP WITH TIME ZONE | 更新日時 |
+
+DBにも非負数・上限・カテゴリ等の制約を設定しています。
+更新はトランザクションと行ロックを使い、PCとスマホからの同時＋−による取りこぼしを防ぎます。
+商品編集画面を複数同時に開いた場合の変更は、後から保存した内容が優先されます。
+
+## 技術と構成
+
+Java 25 / Spring Boot 4.0.8 / Gradle 9.2.1 / Thymeleaf / Spring Data JPA / H2。
+既存のController・Service・Repository・Entity・DTO構成を引き継いでいます。
+Spring Securityはログインを要求せず、書き込みリクエストのCSRF保護に使用します。
+
+```text
+src/main/java/com/example/
+  config/SecurityConfig.java
+  controller/ItemViewController.java  # 画面の受付
+  controller/ItemController.java      # 既存JSON API
+  service/ItemService.java            # 更新・抽出・コピー用テキスト
+  repository/ItemRepository.java      # DBへの読み書き
+  entity/Item.java                    # 商品・日時・在庫判定
+  entity/Category.java
+  entity/StockStatus.java
+  dto/ItemForm.java                   # 画面入力・バリデーション
+  dto/ItemRequest.java
+  dto/UpdateQuantityRequest.java
+src/main/resources/
+  templates/                         # 一覧・登録編集・共通部品・エラー
+  static/css/app.css
+  static/js/app.js                    # 削除確認・コピーのみ
+  application.properties
+  messages.properties
+  schema.sql
+src/test/java/com/example/InventoryTests.java
+start.bat
 ```
-http://localhost:8080/items/view
+
+画面: `/`（旧URL `/items/view` も維持）、`/items/new`、`/items/{id}/edit`、`/shopping`。
+既存JSON API: GET/POST `/items`、PATCH `/items/{id}`。
+JSON APIの更新もCSRFトークンとセッションが必要です。入力検証を適用しています。
+
+## テスト・配布用ビルド
+
+```powershell
+.\gradlew.bat test bootJar
+java -jar build/libs/strore-0.0.1-SNAPSHOT.jar
 ```
 
----
+テスト結果: `build/reports/tests/test/index.html`。
+登録・編集・削除、各画面の描画、判定の境界値、絞り込み、不正入力、
+存在しないID、0未満防止、CSRF、同時＋操作を確認します。
 
-## 👤 作者
+## 今後の候補
 
-* 名前：yamaguchi shun
-* 学習目的：Java / Spring Boot バックエンド開発の基礎習得
+外出先からの閲覧・更新とアクセス制限、必要になった時点でのDB変更。
+家族共有・履歴・バーコード等はVer.1には含めていません。

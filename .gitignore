@@ -48,3 +48,9 @@ out/
 .DS_Store
 Thumbs.db
 *.log
+
+# Personal inventory and local test data
+data/
+*.mv.db
+*.trace.db
+.env

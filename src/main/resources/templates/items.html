@@ -1,57 +1,82 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Items</title>
-</head>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(${shopping} ? '購入リスト' : '日用品一覧')}"></head>
 <body>
-
-<h1>持ち物一覧</h1>
-
-<!-- 追加フォーム -->
-<form th:action="@{/items/view}" method="post">
-    <input type="text" name="name" placeholder="商品名" required>
-    <input type="number" name="quantity" min="0" required>
-    <button type="submit">追加</button>
-</form>
-
-<hr>
-
-<table border="1">
-    <tr>
-        <th>名前</th>
-        <th>数量</th>
-        <th>操作</th>
-    </tr>
-
-    <tr th:each="item : ${items}">
-        <td th:text="${item.name}"></td>
-        <td th:text="${item.quantity}"></td>
-        <td>
-            <!-- + -->
-            <form th:action="@{/items/{id}/change(id=${item.id})}" method="post" style="display:inline">
-                <input type="hidden" name="delta" value="1">
-                <button type="submit">＋</button>
-            </form>
-
-            <!-- - -->
-			<form th:action="@{/items/{id}/change(id=${item.id})}" method="post" style="display:inline">
-			    <input type="hidden" name="delta" value="-1">
-			    <button type="submit"
-			            th:disabled="${item.quantity == 0}">
-			        −
-			    </button>
-			</form>
-
-			<form th:action="@{/items/{id}/delete(id=${item.id})}"
-			      method="post"
-			      style="display:inline"
-			      onsubmit="return confirm('本当に削除しますか？');">
-			    <button type="submit">削除</button>
-			</form>
-        </td>
-    </tr>
-</table>
-
+<header th:replace="~{layout :: header}"></header>
+<main class="container">
+    <div class="page-heading">
+        <div><p class="eyebrow">わが家のストック</p><h1 th:text="${shopping} ? '購入リスト' : '日用品一覧'">日用品一覧</h1></div>
+        <a class="button primary" th:href="@{/items/new}"><span aria-hidden="true">＋</span> 商品を登録</a>
+    </div>
+    <nav class="tabs" aria-label="一覧の切り替え">
+        <a th:href="@{/}" th:classappend="${!shopping} ? 'active'" th:attr="aria-current=${!shopping} ? 'page' : null">すべて <span class="count" th:text="${totalCount}">0</span></a>
+        <a th:href="@{/shopping}" th:classappend="${shopping} ? 'active'" th:attr="aria-current=${shopping} ? 'page' : null">購入リスト <span class="count" th:text="${shoppingCount}">0</span></a>
+    </nav>
+    <p class="notice" role="status" th:if="${notice}" th:text="${notice}"></p>
+    <div class="toolbar">
+        <form method="get" th:action="${shopping} ? @{/shopping} : @{/}" class="filter">
+            <label for="category">カテゴリ</label>
+            <select id="category" name="category">
+                <option value="">すべてのカテゴリ</option>
+                <option th:each="category : ${categories}" th:value="${category}" th:text="${category.label}" th:selected="${category == selectedCategory}"></option>
+            </select>
+            <button class="button secondary" type="submit">絞り込む</button>
+        </form>
+        <span class="muted result-count" th:text="|${items.size()}件|">0件</span>
+    </div>
+    <p class="hint shopping-hint" th:if="${shopping}">在庫切れ、または最低ストック数以下の商品です。表示しているリストをコピーして、買い物用のメモに貼り付けられます。</p>
+    <section class="empty" th:if="${items.isEmpty()}">
+        <span class="empty-mark" aria-hidden="true" th:text="${shopping} ? '✓' : '＋'"></span>
+        <h2 th:text="${shopping} ? '購入が必要な商品はありません' : (${selectedCategory != null} ? 'このカテゴリの商品はありません' : '日用品を登録しましょう')"></h2>
+        <p th:text="${shopping} ? 'ストックが少なくなると、ここに表示されます。' : '商品名とストック数を入力して、管理を始めましょう。'"></p>
+        <a th:unless="${shopping}" class="button primary" th:href="@{/items/new}">商品を登録</a>
+        <a th:if="${shopping}" class="button secondary" th:href="@{/}">日用品一覧へ</a>
+    </section>
+    <div class="item-list" th:unless="${items.isEmpty()}">
+        <article class="item" th:each="item : ${items}">
+            <div class="item-info">
+                <span class="category-label" th:text="${item.category.label}"></span>
+                <h2 th:text="${item.name}"></h2>
+                <p class="item-note" th:if="${!#strings.isEmpty(item.note)}" th:text="${item.note}"></p>
+            </div>
+            <div class="stock-state">
+                <span class="badge" th:classappend="${item.status.cssClass}" th:text="${item.status.label}"></span>
+                <span class="minimum" th:text="|最低ストック：${item.minimumQuantity}個|"></span>
+            </div>
+            <div class="quantity-control" role="group" th:attr="aria-label=|${item.name}のストック数|">
+                <form method="post" th:action="@{/items/{id}/change(id=${item.id})}">
+                    <input type="hidden" name="delta" value="-1">
+                    <input type="hidden" name="shopping" th:value="${shopping}">
+                    <input type="hidden" name="category" th:value="${selectedCategory}">
+                    <button class="quantity-button" type="submit" th:disabled="${item.quantity == 0}" th:attr="aria-label=|${item.name}を1個減らす|">−</button>
+                </form>
+                <span class="quantity"><strong th:text="${item.quantity}"></strong><span>個</span></span>
+                <form method="post" th:action="@{/items/{id}/change(id=${item.id})}">
+                    <input type="hidden" name="delta" value="1">
+                    <input type="hidden" name="shopping" th:value="${shopping}">
+                    <input type="hidden" name="category" th:value="${selectedCategory}">
+                    <button class="quantity-button plus" type="submit" th:disabled="${item.quantity == 9999}" th:attr="aria-label=|${item.name}を1個増やす|">＋</button>
+                </form>
+            </div>
+            <div class="item-actions">
+                <a class="text-button" th:href="@{/items/{id}/edit(id=${item.id})}" th:attr="aria-label=|${item.name}を編集|">編集</a>
+                <form method="post" th:action="@{/items/{id}/delete(id=${item.id})}" th:attr="data-confirm=|「${item.name}」を削除しますか？|">
+                    <input type="hidden" name="shopping" th:value="${shopping}">
+                    <input type="hidden" name="category" th:value="${selectedCategory}">
+                    <button class="text-button danger" type="submit" th:attr="aria-label=|${item.name}を削除|">削除</button>
+                </form>
+            </div>
+        </article>
+    </div>
+    <section class="copy-panel" th:if="${shopping and !items.isEmpty()}" aria-label="購入リストを持ち出す">
+        <div class="copy-heading"><div><h2>買い物に持っていく</h2><p>コピーしたリストは自動更新されません。</p></div><button class="button primary" type="button" id="copy-list">リストをコピー</button></div>
+        <p id="copy-status" class="hint" role="status" aria-live="polite"></p>
+        <details id="copy-details"><summary>テキストを表示・選択する</summary>
+            <textarea id="shopping-text" readonly aria-label="コピー用の購入リスト" rows="7" th:text="${shoppingText}"></textarea>
+        </details>
+    </section>
+    <p class="footer-note">購入したら「＋」、使い始めたら「−」。数える単位を決めておくと管理が楽になります。</p>
+</main>
+<footer th:replace="~{layout :: footer}"></footer>
 </body>
 </html>

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head(${editing} ? '商品を編集' : '商品を登録')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<main class="container form-container">
+    <a class="back-link" th:href="@{/}">← 日用品一覧へ</a>
+    <div class="page-heading"><div><p class="eyebrow">わが家のストック</p><h1 th:text="${editing} ? '商品を編集' : '商品を登録'"></h1></div></div>
+    <form class="item-form" method="post" th:object="${itemForm}" th:action="${editing} ? @{/items/{id}/edit(id=${itemId})} : @{/items/view}">
+        <div class="error-summary" role="alert" th:if="${#fields.hasErrors('*')}">入力内容を確認してください。まだ保存されていません。</div>
+        <div class="field">
+            <label for="name">商品名 <span class="required">必須</span></label>
+            <input id="name" type="text" th:field="*{name}" maxlength="100" required placeholder="例：歯磨き粉" aria-describedby="name-error" th:attr="aria-invalid=${#fields.hasErrors('name')}">
+            <p id="name-error" class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+        </div>
+        <div class="field">
+            <label for="category">カテゴリ</label>
+            <select id="category" th:field="*{category}" required aria-describedby="category-error" th:attr="aria-invalid=${#fields.hasErrors('category')}">
+                <option th:each="category : ${categories}" th:value="${category}" th:text="${category.label}"></option>
+            </select>
+            <p id="category-error" class="field-error" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></p>
+        </div>
+        <div class="field-row">
+            <div class="field">
+                <label for="quantity">現在のストック数 <span class="required">必須</span></label>
+                <div class="number-field"><input id="quantity" type="number" th:field="*{quantity}" min="0" max="9999" step="1" inputmode="numeric" required aria-describedby="quantity-error" th:attr="aria-invalid=${#fields.hasErrors('quantity')}"><span>個</span></div>
+                <p id="quantity-error" class="field-error" th:if="${#fields.hasErrors('quantity')}" th:errors="*{quantity}"></p>
+            </div>
+            <div class="field">
+                <label for="minimumQuantity">最低ストック数 <span class="required">必須</span></label>
+                <div class="number-field"><input id="minimumQuantity" type="number" th:field="*{minimumQuantity}" min="0" max="9999" step="1" inputmode="numeric" required aria-describedby="minimum-hint minimum-error" th:attr="aria-invalid=${#fields.hasErrors('minimumQuantity')}"><span>個</span></div>
+                <p id="minimum-error" class="field-error" th:if="${#fields.hasErrors('minimumQuantity')}" th:errors="*{minimumQuantity}"></p>
+            </div>
+        </div>
+        <p class="hint threshold-hint" id="minimum-hint">最低ストック数以下になると購入リストに表示します。0個の商品は、最低ストック数が0でも表示します。</p>
+        <div class="field">
+            <label for="note">メモ <span class="optional">任意</span></label>
+            <textarea id="note" th:field="*{note}" rows="4" maxlength="1000" placeholder="例：いつもの詰め替え用・洗面台の下に保管" aria-describedby="note-error" th:attr="aria-invalid=${#fields.hasErrors('note')}"></textarea>
+            <p id="note-error" class="field-error" th:if="${#fields.hasErrors('note')}" th:errors="*{note}"></p>
+        </div>
+        <div class="form-actions"><a class="button secondary" th:href="@{/}">キャンセル</a><button class="button primary" type="submit" th:text="${editing} ? '変更を保存' : '登録する'"></button></div>
+    </form>
+</main>
+<footer th:replace="~{layout :: footer}"></footer>
+</body>
+</html>

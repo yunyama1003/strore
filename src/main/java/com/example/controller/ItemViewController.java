@@ -1,56 +1,92 @@
 package com.example.controller;
 
+import com.example.dto.ItemForm;
+import com.example.entity.Category;
+import com.example.service.ItemService;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import com.example.service.ItemService;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
-@RequestMapping("/items")
 public class ItemViewController {
-
     private final ItemService service;
+    public ItemViewController(ItemService service) { this.service = service; }
 
-    public ItemViewController(ItemService service) {
-        this.service = service;
-    }
+    @ModelAttribute("categories")
+    public Category[] categories() { return Category.values(); }
 
-    @GetMapping("/view")
-    public String view(Model model) {
-        model.addAttribute("items", service.findAll());
-        return "items"; // ← HTMLファイル名
+    @GetMapping({"/", "/items/view"})
+    public String list(@RequestParam(required = false) Category category, Model model) {
+        return showList(category, false, model);
     }
- // ★ フォームからのPOST処理
-    @PostMapping("/view")
-    public String create(
-            @RequestParam String name,
-            @RequestParam int quantity
-    ) {
-        service.create(name, quantity);
-
-        // リダイレクト（二重送信防止）
-        return "redirect:/items/view";
+    @GetMapping("/shopping")
+    public String shopping(@RequestParam(required = false) Category category, Model model) {
+        return showList(category, true, model);
     }
-    // ★ + / -
-    @PostMapping("/{id}/change")
-    public String changeQuantity(
-            @PathVariable Long id,
-            @RequestParam int delta
-    ) {
+    private String showList(Category category, boolean shopping, Model model) {
+        var items = service.list(category, shopping);
+        model.addAttribute("items", items);
+        model.addAttribute("shopping", shopping);
+        model.addAttribute("selectedCategory", category);
+        model.addAttribute("totalCount", service.findAll().size());
+        model.addAttribute("shoppingCount", service.list(null, true).size());
+        model.addAttribute("shoppingText", service.shoppingText(items));
+        return "items";
+    }
+    @GetMapping("/items/new")
+    public String newItem(Model model) {
+        model.addAttribute("itemForm", new ItemForm());
+        return formPage(null, model);
+    }
+    @PostMapping("/items/view")
+    public String create(@Valid @ModelAttribute ItemForm itemForm, BindingResult errors,
+                         Model model, RedirectAttributes flash) {
+        if (errors.hasErrors()) return formPage(null, model);
+        service.create(itemForm);
+        flash.addFlashAttribute("notice", "商品を登録しました。");
+        return "redirect:/";
+    }
+    @GetMapping("/items/{id}/edit")
+    public String edit(@PathVariable Long id, Model model) {
+        model.addAttribute("itemForm", ItemForm.from(service.find(id)));
+        return formPage(id, model);
+    }
+    @PostMapping("/items/{id}/edit")
+    public String update(@PathVariable Long id, @Valid @ModelAttribute ItemForm itemForm,
+                         BindingResult errors, Model model, RedirectAttributes flash) {
+        service.find(id);
+        if (errors.hasErrors()) return formPage(id, model);
+        service.edit(id, itemForm);
+        flash.addFlashAttribute("notice", "変更を保存しました。");
+        return "redirect:/";
+    }
+    private String formPage(Long id, Model model) {
+        model.addAttribute("itemId", id);
+        model.addAttribute("editing", id != null);
+        return "item-form";
+    }
+    @PostMapping("/items/{id}/change")
+    public String change(@PathVariable Long id, @RequestParam int delta,
+                         @RequestParam(defaultValue = "false") boolean shopping,
+                         @RequestParam(required = false) Category category, RedirectAttributes flash) {
         service.changeQuantity(id, delta);
-        return "redirect:/items/view";
+        flash.addFlashAttribute("notice", "ストック数を更新しました。");
+        return back(shopping, category);
     }
-
-    // ★ 削除
-    @PostMapping("/{id}/delete")
-    public String delete(@PathVariable Long id) {
+    @PostMapping("/items/{id}/delete")
+    public String delete(@PathVariable Long id,
+                         @RequestParam(defaultValue = "false") boolean shopping,
+                         @RequestParam(required = false) Category category, RedirectAttributes flash) {
         service.delete(id);
-        return "redirect:/items/view";
+        flash.addFlashAttribute("notice", "商品を削除しました。");
+        return back(shopping, category);
+    }
+    private String back(boolean shopping, Category category) {
+        return "redirect:" + (shopping ? "/shopping" : "/")
+            + (category == null ? "" : "?category=" + category.name());
     }
 }
 

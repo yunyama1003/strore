@@ -1,45 +1,20 @@
 package com.example.repository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import org.springframework.stereotype.Repository;
-
+import java.util.Optional;
 import com.example.entity.Item;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-@Repository
-public class ItemRepository {
+public interface ItemRepository extends JpaRepository<Item, Long> {
+    List<Item> findAllByOrderByCreatedAtAscIdAsc();
 
-    private final Map<Long, Item> store = new HashMap<>();
-    private long sequence = 1L;
-
-    public Item save(Item item) {
-        item.setId(sequence++);
-        store.put(item.getId(), item);
-        return item;
-    }
-
-    public List<Item> findAll() {
-        return new ArrayList<>(store.values());
-    }
-
-    public Item findById(Long id) {
-        return store.get(id);
-    }
-    // ★ 数量更新
-    public void updateQuantity(Long id, int quantity) {
-        Item item = store.get(id);
-        if (item == null) {
-            throw new IllegalArgumentException("Item not found");
-        }
-        item.setQuantity(quantity);
-    }
-
-    // ★ 削除
-    public void delete(Long id) {
-        store.remove(id);
-    }
+    // Serialize writes to one item to prevent lost +/- updates.
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select i from Item i where i.id = :id")
+    Optional<Item> findForUpdate(@Param("id") Long id);
 }
 

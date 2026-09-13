@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{layout :: head('ページを表示できません')}"></head>
+<body>
+<header th:replace="~{layout :: header}"></header>
+<main class="container">
+    <section class="empty">
+        <p class="eyebrow" th:text="${status}">エラー</p>
+        <h1 th:text="${status == 404} ? '商品・ページが見つかりません' : '操作を完了できませんでした'"></h1>
+        <p th:text="${status == 404} ? '削除されたか、URLが正しくない可能性があります。' : '入力内容を確認し、画面を開き直してからもう一度お試しください。'"></p>
+        <a class="button primary" th:href="@{/}">日用品一覧へ戻る</a>
+    </section>
+</main>
+</body>
+</html>
